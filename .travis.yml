@@ -1,36 +1,71 @@
-osx_image: xcode8.3
-sudo: required
-dist: trusty
-language: c
-matrix:
-  include:
-  - os: osx
-  - os: linux
-    env: CC=clang CXX=clang++ npm_config_clang=1
-    compiler: clang
+language: node_js
+node_js: '12'
 cache:
+  yarn: true
   directories:
-  - node_modules
-  - "$HOME/.electron"
-  - "$HOME/.cache"
-addons:
-  apt:
-    packages:
-    - libgnome-keyring-dev
-    - icnsutils
-before_install:
-- mkdir -p /tmp/git-lfs && curl -L https://github.com/github/git-lfs/releases/download/v1.2.1/git-lfs-$([
-  "$TRAVIS_OS_NAME" == "linux" ] && echo "linux" || echo "darwin")-amd64-1.2.1.tar.gz
-  | tar -xz -C /tmp/git-lfs --strip-components 1 && /tmp/git-lfs/git-lfs pull
-- if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then sudo apt-get install --no-install-recommends -y icnsutils graphicsmagick xz-utils; fi
+    - node_modules
+    - '$HOME/.cache/electron'
+    - '$HOME/.cache/electron-builder'
 install:
-- nvm install 7
-- curl -o- -L https://yarnpkg.com/install.sh | bash
-- source ~/.bashrc
-- npm install -g xvfb-maybe
-- yarn
-script:
-- yarn run build
-branches:
-  only:
-  - master
+  - yarn
+env:
+  global:
+    - ELECTRON_CACHE=$HOME/.cache/electron
+    - ELECTRON_BUILDER_CACHE=$HOME/.cache/electron-builder
+before_cache:
+  - rm -rf $HOME/.cache/electron-builder/wine
+
+stages:
+  # - name: test
+  - name: build
+
+jobs:
+  include:
+    # - stage: test	
+    #   name: 'test'	
+    #   os: linux	
+    #   dist: xenial	
+    #   script:	
+    #     - yarn unit-test	
+    #     - yarn int-test	
+    #     - yarn build --linux --publish never
+    - stage: build
+      name: build_web	
+      os: linux	
+      script:	
+        - yarn build --progress=false	
+      deploy:	
+        provider: netlify	
+        site: $NETLIFY_SITE_ID	
+        auth: $NETLIFY_AUTH_TOKEN	
+        dir: 'dist/'	
+        prod: true	
+        message: 'Travis CI deployment'	
+        edge: true	
+        on:
+          tags: true
+          branch: master
+    - name: build_electron
+      os: osx
+      osx_image: xcode10.2
+      script:
+        - mkdir -p ~/$TRAVIS_BUILD_NUMBER/mac
+        - yarn electron:build --publish never
+      deploy:
+      - provider: releases
+        token: $GH_TOKEN
+        file_glob: true
+        file:
+        - "electron/dist/COMPCON*.AppImage"
+        - "electron/dist/COMPCON*.exe"
+        - "electron/dist/COMPCON*mac.zip"
+        on:
+          tags: true
+          branch: master
+        edge: true
+      - provider: script
+        on:
+          tags: true
+          branch: master
+        script: bash build_scripts/deploy_butler.sh
+        edge: true

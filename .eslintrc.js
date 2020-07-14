@@ -1,26 +1,39 @@
 module.exports = {
-  root: true,
-  parser: 'babel-eslint',
-  parserOptions: {
-    sourceType: 'module'
-  },
-  env: {
-    browser: true,
-    node: true
-  },
-  extends: 'standard',
-  globals: {
-    __static: true
-  },
-  plugins: [
-    'html'
+  parser: 'vue-eslint-parser',
+  plugins: ['@typescript-eslint', 'vuetify'],
+  extends: [
+    'plugin:@typescript-eslint/recommended',
+    'prettier',
+    'prettier/@typescript-eslint',
+    'plugin:vue/recommended',
   ],
-  'rules': {
-    // allow paren-less arrow functions
-    'arrow-parens': 0,
-    // allow async-await
-    'generator-star-spacing': 0,
-    // allow debugger during development
-    'no-debugger': process.env.NODE_ENV === 'production' ? 2 : 0
-  }
+  parserOptions: {
+    ecmaVersion: 2018,
+    sourceType: 'module',
+    parser: '@typescript-eslint/parser',
+  },
+  rules: {
+    '@typescript-eslint/indent': ['error', 2],
+    camelcase: 'off',
+    '@typescript-eslint/no-var-requires': 'off',
+    '@typescript-eslint/camelcase': ['error', { properties: 'never' }],
+    '@typescript-eslint/interface-name-prefix': 0,
+    'vue/max-attributes-per-line': 'off',
+    'vue/name-property-casing': ['error', 'kebab-case'],
+    'vue/no-v-html': 'off',
+    'vue/singleline-html-element-content-newline': 'off',
+    'vue/closing-line-bracket-newline': 'off',
+    'vue/html-closing-bracket-newline': 'off',
+    'vue/html-self-closing': 'off',
+    'vue/multiline-html-element-content-newline': 'off',
+    '@typescript-eslint/explicit-member-accessibility': 'off',
+    '@typescript-eslint/no-explicit-any': 'off',
+    '@typescript-eslint/explicit-function-return-type': [
+      'warn',
+      {
+        allowExpressions: true,
+        allowTypedFunctionExpressions: true,
+      },
+    ],
+  },
 }
